@@ -70,7 +70,9 @@ This is also useful when one of your `then` block has a long piece of code with 
 
 You can accomplish this using the `finally()` block of code after the `catch()`.  
 
-Finally can be used to clear things.
+Finally can be used to clear things.  
+
+***
 
 # CREATING AND QUEUING PROMISES
 
@@ -121,4 +123,106 @@ This can be used when you have copies of your API end point deployed on various 
 
 Race stops when the first promises settles - SUCCESS or FAILURE.  
 If the first API (fastest) throws error, even if the others might resolve to success, you wont get any data.  
+
+***  
+
+# Async/Await
+
+**Why and What?**
+The purpose of async/await is to use Promises in a sync. format. It is nothing but syntactic sugar for Promises.  
+
+The `async` keyword is used to signal that a function is asynchronous. It can be used in regular function declaration as well as it can be used in function expressions.  
+
+An `async` function always returns a `Promise`. Because it is an implicit promise, the return value will be wrapped inside a Promise.  
+Additionally, if it returns an error, it will be wrapped in a rejected Promise.  
+
+The `await` keyword pauses the execution of the asynchronous function, while it waits for the promise to settle - SUCCESS or FAILURE.  
+It can only be used inside a `async` function.  
+
+Only blocks the current function.  
+
+## Use async/await with try-catch block
+
+```javascript
+async function getCatch() {
+
+    try {
+        const { data } = await axios.get("http://localhost:3000/orders/123");
+        setText(JSON.stringify(data));
+    } catch (error) {
+        setText(error);
+    }
+}
+```
+
+## Chaining async/await or sequential calls
+
+```javascript
+async function chain() {
+    try {
+        const { data } = await axios.get("http://localhost:3000/orders/1");
+        const { data: address } = await axios.get(`http://localhost:3000/addresses/${data.shippingAddress}`);
+        setText(address.city);
+    } catch (error) {
+        setText(error);
+    }
+}
+```
+
+## Making concurrent/non-sequential calls using async/await  
+
+Making non-sequential calls are important because, if we have a slower api and a faster api and we await on the slower api to finish, then it will be make the system slow. What we can do instead is that call both the APIs concurrently and let the faster API resolve first, we'll wait for the slower API to then resolve and THEN once both the APIs resolved, we'll use their data.  
+
+```javascript
+export async function concurrent() {
+
+   try {
+        // by not prefixing "await" before axios calls, we allowed them to kick-off at the same time.
+        // this is because Promises are eager. We dont have to call them to make them run
+        // this makes the two calls concurrent
+        const orderStatus = axios.get("http://localhost:3000/orderStatuses");
+        const orders = axios.get("http://localhost:3000/orders");
+
+        setText("");
+
+        // even though we are awaiting on the orderStatus API (slower API), the orders API is already hit and it resolved the data
+        // this helped us to get the data from the faster API (orders) even though we were waiting on the slower one
+        const { data: statuses } = await orderStatus;
+        const { data: order } = await orders;
+
+        // using the data of both API's at once
+        appendText(JSON.stringify(statuses));
+        appendText('----------------------');
+        appendText(JSON.stringify(order[0]));
+    } catch (error) {
+        setText(error);
+    }
+
+}
+```
+
+## Making parallel calls
+
+We need this so that we are not blocking a fast-running process with a slow running process.  
+
+```javascript
+async function parallel() {
+    // we'll be using the data as soon as it is available from the fastest API getting resolved
+    // and because we are using Promise.all(), the parallel hits wont stop till all the promises inside it are resolved
+    setText("");
+
+    await Promise.all([
+        (async () => {
+            const { data } = await axios.get("http://localhost:3000/orderStatuses");
+            appendText('**************' + JSON.stringify(data));
+        })(),
+        (async () => {
+            const { data } = await axios.get("http://localhost:3000/orders");
+            appendText('---------------------' + JSON.stringify(data));
+        })()
+    ]);
+
+}
+```
+
 
