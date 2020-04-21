@@ -70,5 +70,55 @@ This is also useful when one of your `then` block has a long piece of code with 
 
 You can accomplish this using the `finally()` block of code after the `catch()`.  
 
+Finally can be used to clear things.
+
 # CREATING AND QUEUING PROMISES
+
+To create your own Promise, you need to understand the states of promises.  
+
+ - A pending promise is a promise that has not yet settled. When you create a promise using the `new Promise()`, the promise you created is in Pending state.  
+ - Promise takes only one argument which is called "THE EXECUTOR FUNCTION".  
+ - The Executor Function takes "resolve" as a parameter.  
+ - You use "resolve" to change the state of the Promise. When you want your promise to succeed, you pass the data in the `resolve()`  
+
+## ONLY RESOLVE ONCE
+This is a note for re-resolving the same promise. You cannot.  
+Once a Promise has resolved or rejected, ITS DONE! You cannot resolve it again.  
+
+In other words, If the associated promise has already been resolved, either to a value, a rejection, or another promise, this method does nothing.  
+
+## REJECTING PROMISES
+The EXECUTOR FUNCTION which the Promise takes as the only parameter takes a second parameter - `reject`.  
+When you want to reject a promise, you pass your error/reason of rejection within `reject`.  
+
+## WAITING FOR ALL PROMISES TO RESOLVE - PROMISE.all() - SEQUENTIALLY HITTING APIs
+
+For example, if you have to hit API's sequentially and work with the result of one API with another:  
+
+![image](https://user-images.githubusercontent.com/18363595/79899503-87cbe180-842a-11ea-87fb-e96db3a32e29.png)
+
+The mantra is: EITHER ALL FULFILL **OR** ONE REJECTS  
+
+You basically use `Promsie.all()`, when you want all promises to fulfill. If one rejects, you dont want to continue as all the promises are interdependent of each other.  
+
+Also, the order in which you give promises in the Promise.all([list of promises]) array, that is the order in which they will be received by `then` and not the order in which they actually get resolved, because the order can be different everytime of their resolution.  
+
+## WAITING FOR PROMISES TO RESOLVE - PROMISE.allSettled() - PARALLELLY HITTING APIs  
+
+This is used when you want to hit te APIs **PARALLELLY** and you dont want to exit even if any one of the API fails.  
+
+The response of `Promise.allSettled()` is different that the response of `Promise.all()`.  
+
+![image](https://user-images.githubusercontent.com/18363595/79905349-bac6a300-8433-11ea-8dc7-fc46727abb07.png)
+
+A `catch` is not required because the type of response is JSON. Even though it is not required, it is recommended to have one.  
+
+
+## RACING PROMISES - Promise.race()
+![image](https://user-images.githubusercontent.com/18363595/79905934-9cad7280-8434-11ea-9797-fef3fe9ceb5a.png)  
+
+This can be used when you have copies of your API end point deployed on various servers (separated geographically) and you want to hit the closest one, ignoring the rest.  
+
+Race stops when the first promises settles - SUCCESS or FAILURE.  
+If the first API (fastest) throws error, even if the others might resolve to success, you wont get any data.  
 
