@@ -30,4 +30,45 @@ It can have 3 states:
 
 Promises are NOT LAZY. They are eagerly evaluated. Promises do not wait for us to request the value before they execute!
 
+# CONSUMING PROMISES
+
+Promises return promises. Be it then() or catch(), they both return Promises.  
+You can use this feature to chain Promises.  
+
+### MORE CONTROL OVER CATCHING ERRORS
+
+```javascript
+    axios.get("http://localhost:3000/orders/1")
+        .then(({ data }) => {
+            return axios.get(`http://localhost:3000/addresses/${data.shippingAddress}`);
+
+
+        })
+        .catch(err => {
+            // this will catch error from the 1st block only
+            // used for fine-grained control
+            setText('Error from first block');
+            throw new Error("Catch in last catch block");
+        })
+        .then(({ data }) => {
+            setText(`City: ${data.my.city}`);
+        })
+        .catch(err => {
+            // this will catch errors from all the blocks above
+            setText(err);
+        });
+}
+```  
+
+If you do decide to catch at multiple times, make sure you do it thoroughly.  
+
+### PERFORMING ONE LAST OPERATION - FINALLY()
+This is a use case where you dont care if the promise gets fulfilled or rejected, you just want this particular piece of code to be executed.  
+For example, a loading indicator.  
+
+This is also useful when one of your `then` block has a long piece of code with multiple async operations which will take time to complete. You dont want to stop the loader as soon as the promise is resolved, you want to stop the loader when the entire `then` finishes.  
+
+You can accomplish this using the `finally()` block of code after the `catch()`.  
+
+# CREATING AND QUEUING PROMISES
 
